@@ -1,0 +1,71 @@
+---
+- name: play1
+  hosts: web
+  gather_facts: True
+
+  tasks:
+    - name: Install many services by loop method
+      apt:
+        name: "{{ item.apt_name }}"
+        state: "{{ item.apt_state }}"
+      loop:
+        - { apt_name: curl, apt_state: absent }
+        - { apt_name: nginx, apt_state: latest }
+        
+      when: ansible_distribution == "Ubuntu"
+      register: installation_result
+      tags:
+        - install_services
+
+    - name: Debug installation result
+      debug:
+        var: installation_result
+      tags:
+        - debug_output
+
+    - name: Restart nginx service
+      systemd:
+        name: nginx
+        state: restarted
+      when: installation_result.changed and not installation_result.failed
+      tags:
+        - restart_service
+
+
+
+
+
+
+
+
+
+
+#- name: Install nginx
+#  hosts: web
+#  gather_facts: false
+#  vars:
+#    package_name: nginx
+#    package_state: latest
+#  tasks:
+#    - name: nginx
+#      apt:
+#        name: "{{ package_name }}"
+#        state: "{{ package_state }}"
+
+#    - name: Copy index.html to container
+#      copy:
+#        src: ./index.html
+#        dest: /usr/share/nginx/       
+
+#    - name: Display webpage content
+#      debug:
+#        var: webpage.content  
+
+
+#- name: play2
+#  hosts: db
+#  tasks:
+#    - name: install curl
+#      apt:
+#        name: curl
+#        state: present
